@@ -9,7 +9,7 @@ Created on Sun Oct 31 02:28:51 2021
 from CryptoGenerator.StockMarket import StockMarket
 from CryptoGenerator.Wallet import Wallet
 import random
-
+from enum import Enum
 
 class Strategy:
     

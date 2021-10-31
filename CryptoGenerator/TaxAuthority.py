@@ -5,31 +5,28 @@ Created on Sun Oct 31 02:30:54 2021
 @author: Andre
 """
 
-
+from CryptoGenerator.TaxDeclaration import TaxDeclaration
 from CryptoGenerator.Trader import Trader
-
 
 class TaxAuthority: 
 
 
-    def __init__(self, taxes_percentage, total_taxes_paid_by_trader):
+    def __init__(self, taxes_percentage):
         self.__taxes_percentage = taxes_percentage
-        self.__total_taxes_paid_by_trader = total_taxes_paid_by_trader
 
+    
+    def make_tax_declaration(self, trader):
+        taxes = calculate_taxes_to_pay(trader.tax_declaration())
+        trader.pay_taxes(taxes)
+        trader.tax_declaration().clear_profit()
+
+
+    def calculate_taxes_to_pay(self, tax_declaration):
+        taxes = tax_declaration.profit_to_declare() * self.__taxes_percentage / 100
+        if (taxes < 0): taxes = 0
+        print("TaxAuthority: taxes to pay: " + str(taxes) + "€")
+        return taxes
         
-        
-    def tax_declaration(self, trader):
-        financial_profit_of_trader = trader.get_financial_profit()
-        total_taxes_to_pay = financial_profit_of_trader * self.__taxes_percentage / 100
-        taxes = total_taxes_to_pay - self.__total_taxes_paid_by_trader
-        if (taxes > 0):
-            print("Tax Authority: requesting taxes from trader")
-            trader.pay_taxes(taxes)
-        elif (taxes < 0):
-            print("Tax Authority: returning taxes from trader")
-            trader.return_taxes(abs(taxes))
-        else:
-            print("Tax Authority: no taxes to pay")
-        self.__total_taxes_paid_by_trader += taxes
+
         
         
