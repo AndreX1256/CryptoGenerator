@@ -10,6 +10,7 @@ from CryptoGenerator.Wallet import Wallet
 from CryptoGenerator.Strategy import Strategy
 from CryptoGenerator.StockMarket import TradeType
 from CryptoGenerator.TaxDeclaration import TaxDeclaration
+from CryptoGenerator.TaxDeclaration import TaxType
 
 
 class Trader:
@@ -18,7 +19,7 @@ class Trader:
     def __init__(self, start_money):
         self.__wallet = Wallet(start_money,0)
         self.__strategy = Strategy()
-        self.__tax_declaration = TaxDeclaration()
+        self.__tax_declaration = TaxDeclaration(TaxType.FIFO)
         
         
     def do_action(self, stock_market):
