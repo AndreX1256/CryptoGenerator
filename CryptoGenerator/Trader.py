@@ -68,6 +68,8 @@ class Trader:
         self.__wallet.insert_euros(euros)
         
 
+    def wallet(self):
+        return self.__wallet
 
     def is_broke(self):
         if self.__wallet.euros() <= 0 and self.__wallet.bitcoins() <= 0:
