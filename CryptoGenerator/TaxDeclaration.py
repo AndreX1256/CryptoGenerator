@@ -46,6 +46,7 @@ class TaxDeclaration:
             
             if purchase.bitcoins() > sale.bitcoins():
                 current_profit -= sale.bitcoins() * purchase.bitcoin_price()
+                purchase.set_bitcoins(purchase.bitcoins() - sale.bitcoins())
                 sale.set_bitcoins(0)
                 
             if purchase.bitcoins() <= sale.bitcoins():

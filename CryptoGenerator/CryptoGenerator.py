@@ -15,6 +15,7 @@ class CryptoGenerator:
 
 
     def __init__(self, start_money):
+        self.__start_money = start_money
         self.__trader = Trader(start_money)
         self.__tax_authority = TaxAuthority(taxes_percentage = 45)
         self.__stock_market = StockMarket(bitcoin_price = 35000, trading_fees = 1)
@@ -28,13 +29,13 @@ class CryptoGenerator:
         self.__trader.show()
         self.__tax_authority.calculate_taxes_to_pay(self.__trader.tax_declaration())
         
-    def calculate_current_outcome(self, market, trader, tax_authority):
+    def calculate_current_outcome(self, market, trader, tax_authority, start_money):
         current_euros = trader.wallet().euros()
         current_bitcoins = trader.wallet().bitcoins()
         current_bitcoin_value = current_bitcoins * market.bitcoin_price()
         current_taxes_to_pay = tax_authority.calculate_taxes_to_pay(trader.tax_declaration())
-        current_outcome = current_euros + current_bitcoin_value - current_taxes_to_pay
-        print ("CryptoGenerator: current outcome is " + str(current_outcome))
+        current_outcome = current_euros + current_bitcoin_value - current_taxes_to_pay - start_money
+        print ("CryptoGenerator: current outcome is " + str(current_outcome) + "€")
         return current_outcome
         
     
@@ -49,7 +50,7 @@ class CryptoGenerator:
             self.__trader.do_action(self.__stock_market)
             self.__tax_authority.calculate_taxes_to_pay(self.__trader.tax_declaration())
             self.__trader.show()
-            self.calculate_current_outcome(self.__stock_market, self.__trader, self.__tax_authority)
+            self.calculate_current_outcome(self.__stock_market, self.__trader, self.__tax_authority, self.__start_money)
             
             market_updater.update_market(self.__stock_market)
             current_step += 1

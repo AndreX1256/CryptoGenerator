@@ -10,7 +10,7 @@ from CryptoGenerator.CryptoGenerator import CryptoGenerator
 
 
 def main():
-    start_money = 10000
+    start_money = 1000
     crypto_generator = CryptoGenerator(start_money)
     crypto_generator.run()
 
