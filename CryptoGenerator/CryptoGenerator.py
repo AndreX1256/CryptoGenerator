@@ -8,7 +8,7 @@ Created on Sat Oct  2 16:44:50 2021
 from CryptoGenerator.Trader import Trader
 from CryptoGenerator.TaxAuthority import TaxAuthority
 from CryptoGenerator.StockMarket import StockMarket
-import random
+from CryptoGenerator.StockMarket import MarketUpdater
 
 
 class CryptoGenerator: 
@@ -34,12 +34,13 @@ class CryptoGenerator:
         keep_running = True
         max_steps = 10000
         current_step = 0
+        market_updater = MarketUpdater(-100, 100)
         while not self.__trader.is_broke() and current_step < max_steps and keep_running:
             print("--- next step (" + str(current_step) + ")---")
             self.__trader.do_action(self.__stock_market)
             self.__tax_authority.calculate_taxes_to_pay(self.__trader.tax_declaration())
             self.__trader.show()
-            self.__stock_market.update(random.randint(30000, 40000))
+            market_updater.update_market(self.__stock_market)
             current_step += 1
         
 

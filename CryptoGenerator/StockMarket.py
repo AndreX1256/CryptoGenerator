@@ -9,6 +9,7 @@ Created on Sun Oct 31 02:20:15 2021
 from CryptoGenerator.Wallet import Wallet
 import copy
 from enum import Enum
+import random
 
 
 class TradeType(Enum):
@@ -47,6 +48,29 @@ class Trade:
         if (self.__trade_type is TradeType.DENIED): print ( "Trade: denied")
 
 
+class MarketUpdater:
+    
+    def __init__(self, min_range, max_range):
+        self.__do_random_relative = True
+        self.__do_random_absolute = False
+        self.__range_min = min_range
+        self.__range_max = max_range
+    
+    def update_absolute(self, market, value):
+        market.update(value)
+        
+    def update_relative(self, market, value):
+        old_price = market.bitcoin_price()
+        market.update(old_price + value)
+        
+    def update_market(self, market):
+        if self.__do_random_relative:
+            self.update_relative(market, random.randint(self.__range_min, self.__range_max))
+        if self.__do_random_absolute:
+            self.update_absolute(market, random.randint(self.__range_min, self.__range_max))
+        
+    
+
 class StockMarket: 
 
 
@@ -57,6 +81,7 @@ class StockMarket:
         
     def update(self, bitcoin_price):
         self.__bitcoin_price = bitcoin_price
+        print("StockMarket: new bitcoin price is " + str(bitcoin_price)) 
     
     
     def buy_bitcoins(self, wallet, euros):
