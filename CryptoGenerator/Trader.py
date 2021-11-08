@@ -44,6 +44,7 @@ class Trader:
             self.hold()
 
         self.__strategy.update(self.__wallet)
+        return action
         
         
     def buy(self, stock_market, euros):
