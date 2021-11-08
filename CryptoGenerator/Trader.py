@@ -8,6 +8,8 @@ Created on Sun Oct 31 02:41:03 2021
 
 from CryptoGenerator.Wallet import Wallet
 from CryptoGenerator.Strategy import Strategy
+from CryptoGenerator.Strategy import Action
+from CryptoGenerator.Strategy import ActionType
 from CryptoGenerator.StockMarket import TradeType
 from CryptoGenerator.TaxDeclaration import TaxDeclaration
 from CryptoGenerator.TaxDeclaration import TaxType
@@ -24,12 +26,23 @@ class Trader:
         
     def do_action(self, stock_market):
         action = self.__strategy.receive_action(stock_market, self.__wallet)
-        if (action > 0):
-            self.buy(stock_market, action)
-        elif (action < 0):
-            self.sell(stock_market, self.__wallet.bitcoins())
-        else:
+
+        if action.get_action_type() is ActionType.BUY:
+            print("Trader choose to buy for " + str(action.get_amount()) + "€")
+            self.buy(stock_market, action.get_amount())
+        if action.get_action_type() is ActionType.BUYALL:
+            print("Trader choose to buy all")
+            self.buy(stock_market, self.wallet().euros())
+        if action.get_action_type() is ActionType.SELL:
+            print("Trader choose to sell for " + str(action.get_amount()) + "€")
+            self.sell(stock_market, action.get_amount() / stock_market.bitcoin_price())
+        if action.get_action_type() is ActionType.SELLALL:
+            print("Trader choose to sell all")
+            self.sell(stock_market, self.wallet().bitcoins())
+        if action.get_action_type() is ActionType.HOLD:
+            print("Trader choose to hold")
             self.hold()
+
         self.__strategy.update(self.__wallet)
         
         
