@@ -19,8 +19,9 @@ class CryptoGenerator:
         self.__trader = Trader(start_money)
         self.__tax_authority = TaxAuthority(taxes_percentage = 45)
         self.__stock_market = StockMarket(bitcoin_price = 35000, trading_fees = 1)
-    
-    
+        self.__market_updater = MarketUpdater(34000, 36000)
+
+
     def buy_sell_taxes(self):
         self.__trader.buy(self.__stock_market, 1500)
         self.__trader.show()
@@ -29,6 +30,7 @@ class CryptoGenerator:
         self.__trader.show()
         self.__tax_authority.calculate_taxes_to_pay(self.__trader.tax_declaration())
         
+
     def calculate_current_outcome(self, market, trader, tax_authority, start_money):
         current_euros = trader.wallet().euros()
         current_bitcoins = trader.wallet().bitcoins()
@@ -42,17 +44,16 @@ class CryptoGenerator:
     def run(self):
         print("Running Crypto Generator!")
         keep_running = True
-        max_steps = 10000
+        max_steps = 1000
         current_step = 0
-        market_updater = MarketUpdater(-100, 100)
+
         while not self.__trader.is_broke() and current_step < max_steps and keep_running:
             print("--- next step (" + str(current_step) + ")---")
             self.__trader.do_action(self.__stock_market)
             self.__tax_authority.calculate_taxes_to_pay(self.__trader.tax_declaration())
             self.__trader.show()
             self.calculate_current_outcome(self.__stock_market, self.__trader, self.__tax_authority, self.__start_money)
-            
-            market_updater.update_market(self.__stock_market)
+            self.__market_updater.update_market(self.__stock_market)
             current_step += 1
         
 
