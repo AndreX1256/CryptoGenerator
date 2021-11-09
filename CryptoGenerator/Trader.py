@@ -8,8 +8,8 @@ Created on Sun Oct 31 02:41:03 2021
 
 from CryptoGenerator.Wallet import Wallet
 from CryptoGenerator.Strategy import Strategy
-from CryptoGenerator.Strategy import Action
-from CryptoGenerator.Strategy import ActionType
+#from CryptoGenerator.Action import Action
+from CryptoGenerator.Action import ActionType
 from CryptoGenerator.StockMarket import TradeType
 from CryptoGenerator.TaxDeclaration import TaxDeclaration
 from CryptoGenerator.TaxDeclaration import TaxType
@@ -24,21 +24,21 @@ class Trader:
         self.__tax_declaration = TaxDeclaration(TaxType.FIFO)
         
         
-    def do_action(self, stock_market):
-        action = self.__strategy.receive_action(stock_market, self.__wallet)
+    def do_action(self, stock_market, input_data):
+        action = self.__strategy.receive_action(input_data)
 
         if action.get_action_type() is ActionType.BUY:
             print("Trader choose to buy for " + str(action.get_amount()) + "€")
             self.buy(stock_market, action.get_amount())
         if action.get_action_type() is ActionType.BUYALL:
             print("Trader choose to buy all")
-            self.buy(stock_market, self.wallet().euros())
+            self.buy(stock_market, self.__wallet.euros())
         if action.get_action_type() is ActionType.SELL:
             print("Trader choose to sell for " + str(action.get_amount()) + "€")
             self.sell(stock_market, action.get_amount() / stock_market.bitcoin_price())
         if action.get_action_type() is ActionType.SELLALL:
             print("Trader choose to sell all")
-            self.sell(stock_market, self.wallet().bitcoins())
+            self.sell(stock_market, self.__wallet.bitcoins())
         if action.get_action_type() is ActionType.HOLD:
             print("Trader choose to hold")
             self.hold()

@@ -25,6 +25,10 @@ class History:
         self.__action.append(action)
         self.__outcome.append(outcome)
         
+    def get_bitcoin_price(self):
+        return self.__bitcoin_price
+
+        
     def visualize(self):        
         x_buy = []
         y_buy = []

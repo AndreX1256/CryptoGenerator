@@ -10,7 +10,7 @@ from CryptoGenerator.TaxAuthority import TaxAuthority
 from CryptoGenerator.StockMarket import StockMarket
 from CryptoGenerator.StockMarket import MarketUpdater
 from CryptoGenerator.History import History
-
+from CryptoGenerator.InputData import InputData
 
 class CryptoGenerator: 
 
@@ -53,7 +53,8 @@ class CryptoGenerator:
             print("--- next step (" + str(current_step) + ")---")
             
             # do action
-            action = self.__trader.do_action(self.__stock_market)
+            input_data = InputData(self.__history, self.__trader.wallet(), self.__stock_market.bitcoin_price())
+            action = self.__trader.do_action(self.__stock_market, input_data)
             self.__tax_authority.calculate_taxes_to_pay(self.__trader.tax_declaration())
             
             # evaluate

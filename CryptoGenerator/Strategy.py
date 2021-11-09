@@ -5,35 +5,13 @@ Created on Sun Oct 31 02:28:51 2021
 @author: Andre
 """
 
-
-from CryptoGenerator.StockMarket import StockMarket
-from CryptoGenerator.Wallet import Wallet
-import random
-from enum import Enum
+#import random
 import numpy as np
 
 
-class ActionType(Enum):
-    HOLD = 1
-    BUY = 2
-    SELL = 3
-    BUYALL = 4
-    SELLALL = 5
-
-
-class Action:
-    
-    def __init__(self, action_type, amount=0.0):
-        self.__action_type = action_type
-        self.__amount = amount
-        
-    def get_action_type(self):
-        return self.__action_type
-    
-    def get_amount(self):
-        return self.__amount
-    
-
+from CryptoGenerator.Action import Action
+from CryptoGenerator.Action import ActionType
+#from CryptoGenerator.InputData import InputData
 
 class Strategy:
     
@@ -42,7 +20,8 @@ class Strategy:
         self.create_strategy()
     
     
-    def receive_action(self, stock_market, wallet):
+    def receive_action(self, input_data):
+        data = input_data.processed_data()
         return np.random.choice(self.__action_list, 1)[0]
     
     
