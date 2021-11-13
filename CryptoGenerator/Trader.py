@@ -7,9 +7,12 @@ Created on Sun Oct 31 02:41:03 2021
 
 
 from CryptoGenerator.Wallet import Wallet
-from CryptoGenerator.Strategy import Strategy
-#from CryptoGenerator.Action import Action
+
+from CryptoGenerator.StrategyRandom import StrategyRandom
+from CryptoGenerator.StrategyScripted import StrategyScripted
+
 from CryptoGenerator.Action import ActionType
+
 from CryptoGenerator.StockMarket import TradeType
 from CryptoGenerator.TaxDeclaration import TaxDeclaration
 from CryptoGenerator.TaxDeclaration import TaxType
@@ -20,7 +23,7 @@ class Trader:
     
     def __init__(self, start_money):
         self.__wallet = Wallet(start_money,0)
-        self.__strategy = Strategy()
+        self.__strategy = StrategyScripted()
         self.__tax_declaration = TaxDeclaration(TaxType.FIFO)
         
         

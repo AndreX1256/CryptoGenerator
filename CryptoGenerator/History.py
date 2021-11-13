@@ -8,7 +8,7 @@ Created on Mon Nov  8 21:41:19 2021
 import matplotlib.pyplot as plt
 import numpy as np
 
-from CryptoGenerator.Strategy import ActionType
+from CryptoGenerator.Action import ActionType
 
 
 class History:

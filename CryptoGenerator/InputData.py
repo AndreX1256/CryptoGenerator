@@ -5,8 +5,6 @@ Created on Tue Nov  9 18:53:12 2021
 @author: Andre
 """
 
-#from CryptoGenerator.History import History
-
 
 class InputData:
     
@@ -15,6 +13,14 @@ class InputData:
         self.__bitcoin_price = bitcoin_price
         self.__wallet = wallet
         
+        
+    def get_bitcoin_price(self):
+        return self.__bitcoin_price
+    
+    
+    def get_wallet(self):
+        return self.__wallet
+    
         
     def processed_data(self):
         data = []
