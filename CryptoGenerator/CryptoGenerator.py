@@ -12,26 +12,17 @@ from CryptoGenerator.StockMarket import MarketUpdater
 from CryptoGenerator.History import History
 from CryptoGenerator.InputData import InputData
 
+from CryptoGenerator.StrategyRandom import StrategyRandom
+from CryptoGenerator.StrategyScripted import StrategyScripted
+from CryptoGenerator.StategyDeepQLearning import StategyDeepQLearning
+
 class CryptoGenerator: 
 
 
     def __init__(self, start_money):
         self.__start_money = start_money
-        self.__trader = Trader(start_money)
-        self.__tax_authority = TaxAuthority(taxes_percentage = 45)
-        self.__stock_market = StockMarket(bitcoin_price = 35000, trading_fees = 1)
-        self.__market_updater = MarketUpdater(34000, 36000)
-        self.__history = History()
-
-
-    def buy_sell_taxes(self):
-        self.__trader.buy(self.__stock_market, 1500)
-        self.__trader.show()
-        self.__stock_market.update(36000)
-        self.__trader.sell(self.__stock_market, 0.1004)
-        self.__trader.show()
-        self.__tax_authority.calculate_taxes_to_pay(self.__trader.tax_declaration())
-        
+        self.__strategy = StategyDeepQLearning()
+       
 
     def calculate_current_outcome(self, market, trader, tax_authority, start_money):
         current_euros = trader.wallet().euros()
@@ -46,27 +37,44 @@ class CryptoGenerator:
     def run(self):
         print("Running Crypto Generator!")
         keep_running = True
-        max_steps = 1000
-        current_step = 0
+        max_steps = 1000  
+        max_episodes = 10
 
-        while not self.__trader.is_broke() and current_step < max_steps and keep_running:
-            print("--- next step (" + str(current_step) + ")---")
+        for current_episode in range(max_episodes):
+            print("--- next episode (" + str(current_episode) + ")---")
+            current_step = 0
             
-            # do action
-            input_data = InputData(self.__history, self.__trader.wallet(), self.__stock_market.bitcoin_price())
-            action = self.__trader.do_action(self.__stock_market, input_data)
-            self.__tax_authority.calculate_taxes_to_pay(self.__trader.tax_declaration())
+            trader = Trader(self.__start_money, self.__strategy)
+            tax_authority = TaxAuthority(taxes_percentage = 45)
+            stock_market = StockMarket(bitcoin_price = 35000, trading_fees = 1)
+            market_updater = MarketUpdater(34000, 36000)
+            history = History()
             
-            # evaluate
-            self.__trader.show()
-            outcome = self.calculate_current_outcome(self.__stock_market, self.__trader, self.__tax_authority, self.__start_money)
-            self.__history.update(current_step+1, self.__stock_market.bitcoin_price(), action, outcome)
+            while not trader.is_broke() and current_step < max_steps and keep_running:
+                print("--- next step (" + str(current_step) + ")---")
+                
+                # do action
+                state = InputData(history, trader.wallet(), stock_market.bitcoin_price())
+                action = trader.do_action(stock_market, state)
+                tax_authority.calculate_taxes_to_pay(trader.tax_declaration())
+                
+                # evaluate
+                trader.show()
+                outcome = self.calculate_current_outcome(stock_market, trader, tax_authority, self.__start_money)
+                history.update(current_step+1, stock_market.bitcoin_price(), action, outcome)
+                
+                # update
+                market_updater.update_market(stock_market)
+                current_step += 1
+                
+                reward = self.calculate_current_outcome(stock_market, trader, tax_authority, self.__start_money)
+                next_state = InputData(history, trader.wallet(), stock_market.bitcoin_price())
+                self.__strategy = trader.strategy()
+                self.__strategy.update(state.processed_data(), action, reward, next_state.processed_data())
+                
+            #self.__strategy.train()
             
-            # update
-            self.__market_updater.update_market(self.__stock_market)
-            current_step += 1
-            
-        self.__history.visualize()
+        history.visualize()
         
 
 

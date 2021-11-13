@@ -8,9 +8,6 @@ Created on Sun Oct 31 02:41:03 2021
 
 from CryptoGenerator.Wallet import Wallet
 
-from CryptoGenerator.StrategyRandom import StrategyRandom
-from CryptoGenerator.StrategyScripted import StrategyScripted
-
 from CryptoGenerator.Action import ActionType
 
 from CryptoGenerator.StockMarket import TradeType
@@ -21,9 +18,9 @@ from CryptoGenerator.TaxDeclaration import TaxType
 class Trader:
     
     
-    def __init__(self, start_money):
+    def __init__(self, start_money, strategy):
         self.__wallet = Wallet(start_money,0)
-        self.__strategy = StrategyScripted()
+        self.__strategy = strategy
         self.__tax_declaration = TaxDeclaration(TaxType.FIFO)
         
         
@@ -46,7 +43,6 @@ class Trader:
             print("Trader choose to hold")
             self.hold()
 
-        self.__strategy.update(self.__wallet)
         return action
         
         
@@ -87,6 +83,11 @@ class Trader:
 
     def wallet(self):
         return self.__wallet
+    
+    
+    def strategy(self):
+        return self.__strategy
+
 
     def is_broke(self):
         if self.__wallet.euros() <= 0 and self.__wallet.bitcoins() <= 0:
