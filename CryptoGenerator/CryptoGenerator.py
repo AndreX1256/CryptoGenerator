@@ -37,8 +37,8 @@ class CryptoGenerator:
     def run(self):
         print("Running Crypto Generator!")
         keep_running = True
-        max_steps = 1000  
-        max_episodes = 10
+        max_steps = 300
+        max_episodes = 100
 
         for current_episode in range(max_episodes):
             print("--- next episode (" + str(current_episode) + ")---")
@@ -72,7 +72,7 @@ class CryptoGenerator:
                 self.__strategy = trader.strategy()
                 self.__strategy.update(state.processed_data(), action, reward, next_state.processed_data())
                 
-            #self.__strategy.train()
+            self.__strategy.train()
             
         history.visualize()
         

@@ -10,7 +10,7 @@ import numpy as np
 from collections import deque
 import random
 
-from tensorflow.keras import Model, Sequential
+from tensorflow.keras import Model, Sequential, Input
 from tensorflow.keras.layers import Dense, Embedding, Reshape
 from tensorflow.keras.optimizers import Adam
 
@@ -29,13 +29,13 @@ class StategyDeepQLearning(Strategy):
         self._action_size = 3
         self._optimizer = Adam(learning_rate=0.01)
         self._expirience_replay = deque(maxlen=2000)
-        self._gamma = 0.6
-        self._epsilon = 1.0
-        self._batch_size = 32
+        self._gamma = 0.95
+        self._epsilon = 0.1
+        self._batch_size = 64
         
         # Build networks
-        self.q_network = self._build_compile_model()
-        self.target_network = self._build_compile_model()
+        self.q_network = self.build_compile_model()
+        self.target_network = self.build_compile_model()
         self.alighn_target_model()
         
         self.q_network.summary()
@@ -45,8 +45,10 @@ class StategyDeepQLearning(Strategy):
         if np.random.rand() <= self._epsilon:
             return np.random.choice(self.__action_list, 1)[0]
         else:
-            q_values = self.q_network.predict(input_data.processed_data())
-            return np.argmax(q_values[0])
+            x_train = np.reshape(input_data.processed_data(), (1, 3))       
+            action_values = self.q_network.predict(x_train)[0,:]
+            index = np.argmax(action_values)
+            return self.__action_list[index]
 
         
     
@@ -59,32 +61,66 @@ class StategyDeepQLearning(Strategy):
         minibatch = random.sample(self._expirience_replay, self._batch_size)
 
         for state, action, reward, next_state in minibatch:
+            
+            #array_state = np.array((state))
+            # x_train = np.reshape(state, (3, 1))
+            # y_train = np.reshape(next_state, (3, 1))
+            
+            action_number = 0
+            if action.get_action_type() is ActionType.HOLD:
+                action_number = 0
+            if action.get_action_type() is ActionType.BUYALL:
+                action_number = 1
+            if action.get_action_type() is ActionType.SELL:
+                action_number = 2
+            
+            x_train = np.reshape(state, (1, 3))       
+            action_values = self.q_network.predict(x_train)[0,:]
+  
+            #action_values = self.q_network.predict(np.array([state]))[0,:]
+            #target = self.q_network.predict(state)
+            #t = self.target_network.predict(y_train)
+            
+            action_values[action_number] = reward + self._gamma * np.amax(action_values)
+            y_train = np.reshape(action_values, (1, 3))
 
-            target = self.q_network.predict(state)
-
-            t = self.target_network.predict(next_state)
-            target[0][action] = reward + self.gamma * np.amax(t)
-
-            self.q_network.fit(state, target, epochs=1, verbose=0)
+            self.q_network.fit(x_train, y_train, epochs=1, verbose=0)
+            #self.q_network.fit([training_batch_current_state, training_batch_action], target, batch_size=64, verbose=self.verbose)
     
     
     def create_strategy(self):
         self.__action_list = np.empty(3, dtype=Action)
-        self.__action_list[0] = Action(ActionType.BUYALL)
-        self.__action_list[1] = Action(ActionType.HOLD)
+        self.__action_list[0] = Action(ActionType.HOLD)
+        self.__action_list[1] = Action(ActionType.BUYALL)
         self.__action_list[2] = Action(ActionType.SELLALL)
         
         
-    def _build_compile_model(self):
+    def build_compile_model(self):
         model = Sequential()
-        model.add(Embedding(self._state_size, 10, input_length=1))
-        model.add(Reshape((10,)))
-        model.add(Dense(50, activation='relu'))
-        model.add(Dense(50, activation='relu'))
+    #     # model.add(Embedding(self._state_size, 10, input_length=1))
+    #     # model.add(Reshape((10,)))
+    #     # model.add(Dense(50, activation='relu'))
+    #     # model.add(Dense(50, activation='relu'))
+    #     # model.add(Dense(self._action_size, activation='linear'))
+        
+        model.add(Dense(10, input_dim=self._state_size, activation='relu'))
+        model.add(Dense(10, activation='relu'))
         model.add(Dense(self._action_size, activation='linear'))
 
         model.compile(loss='mse', optimizer=self._optimizer)
         return model
+    
+    
+    # def create_network(self):
+    #     input_state = Input(shape=[self._state_size], name='input_state')  
+        
+    #     hidden_1 = Dense(50, activation='tanh')(input_state)
+    #     hidden_2 = Dense(50, activation='tanh')(hidden_1)
+    #     action_value = Dense(self._action_size, activation='tanh')(hidden_2)
+        
+    #     actor_model = Model(inputs=input_state,outputs=action_value)
+    #     actor_model.compile(loss='mse', optimizer=self._optimizer)
+    #     return actor_model
     
     def alighn_target_model(self):
         self.target_network.set_weights(self.q_network.get_weights())
