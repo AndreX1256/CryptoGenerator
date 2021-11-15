@@ -18,6 +18,8 @@ from CryptoGenerator.StategyDeepQLearning import StategyDeepQLearning
 
 from CryptoGenerator.VerboseLevel import VerboseLevel
 
+import time
+
 
 class CryptoGenerator: 
 
@@ -39,12 +41,14 @@ class CryptoGenerator:
         
     
     def run(self):
-        print("Running Crypto Generator!")
+        print("--- Running Crypto Generator ---")
         keep_running = True
         max_steps = 300
         max_episodes = 100
 
         for current_episode in range(max_episodes):
+            time_start_episode = time.time()    
+    
             if self.__verbose <= VerboseLevel.INFO: print("--- next episode (" + str(current_episode) + ")---")
             current_step = 0
             
@@ -77,10 +81,19 @@ class CryptoGenerator:
                 self.__strategy.update(state.processed_data(), action, reward, next_state.processed_data())
             
             # train and update network
+            time_start_train = time.time()  
             self.__strategy.train()
+            time_end_train = time.time()
             self.__strategy.epsilon(1 - (current_episode / max_episodes))
             self.__strategy.update_target_weights()
             
+            time_end_episode = time.time()
+            if self.__verbose <= VerboseLevel.INFO: print ("execution time for training is: " + str((time_end_train - time_start_train) * 1000) + " ms")
+            if self.__verbose <= VerboseLevel.INFO: print ("execution time for episode is: " + str((time_end_episode - time_start_episode) * 1000) + " ms")
+            
+        
+        print("--- End Crypto Generator ---")
+        
         history.visualize()
         
 
