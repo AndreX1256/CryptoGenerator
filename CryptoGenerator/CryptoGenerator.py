@@ -71,8 +71,11 @@ class CryptoGenerator:
                 next_state = InputData(history, trader.wallet(), stock_market.bitcoin_price())
                 self.__strategy = trader.strategy()
                 self.__strategy.update(state.processed_data(), action, reward, next_state.processed_data())
-                
+            
+            # train and update network
             self.__strategy.train()
+            self.__strategy.epsilon(1 - (current_episode / max_episodes))
+            self.__strategy.update_target_weights()
             
         history.visualize()
         

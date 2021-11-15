@@ -30,8 +30,9 @@ class StategyDeepQLearning(Strategy):
         self._optimizer = Adam(learning_rate=0.01)
         self._expirience_replay = deque(maxlen=2000)
         self._gamma = 0.95
-        self._epsilon = 0.1
+        self._epsilon = 1.0
         self._batch_size = 64
+        self._tau = 0.1 #0.001
         
         # Build networks
         self.q_network = self.build_compile_model()
@@ -50,12 +51,13 @@ class StategyDeepQLearning(Strategy):
             index = np.argmax(action_values)
             return self.__action_list[index]
 
-        
-    
     
     def update(self, state, action, reward, next_state):
          self._expirience_replay.append((state, action, reward, next_state))
-    
+
+
+    def epsilon(self, epsilon):
+        self._epsilon = epsilon
     
     def train(self):
         minibatch = random.sample(self._expirience_replay, self._batch_size)
@@ -74,19 +76,30 @@ class StategyDeepQLearning(Strategy):
             if action.get_action_type() is ActionType.SELL:
                 action_number = 2
             
-            x_train = np.reshape(state, (1, 3))       
-            action_values = self.q_network.predict(x_train)[0,:]
+            x_state = np.reshape(state, (1, 3))   
+            target = self.q_network.predict(x_state)[0,:]
   
             #action_values = self.q_network.predict(np.array([state]))[0,:]
             #target = self.q_network.predict(state)
             #t = self.target_network.predict(y_train)
             
-            action_values[action_number] = reward + self._gamma * np.amax(action_values)
-            y_train = np.reshape(action_values, (1, 3))
+            x_next_state = np.reshape(next_state, (1, 3))
+            t = self.target_network.predict(x_next_state)[0,:]
+            
+            target[action_number] = reward + self._gamma * np.amax(t)
+            y_train = np.reshape(target, (1, 3))
 
-            self.q_network.fit(x_train, y_train, epochs=1, verbose=0)
+            self.q_network.fit(x_state, y_train, epochs=1, verbose=0)
             #self.q_network.fit([training_batch_current_state, training_batch_action], target, batch_size=64, verbose=self.verbose)
     
+    
+    def update_target_weights(self):
+        network_weights = self.q_network.get_weights()
+        network_target_weights = self.target_network.get_weights()
+        for w_i in range(len(network_weights)):
+            network_target_weights[w_i] = self._tau * network_weights[w_i] + (1 - self._tau)* network_target_weights[w_i]
+        self.target_network.set_weights(network_target_weights)
+        
     
     def create_strategy(self):
         self.__action_list = np.empty(3, dtype=Action)
