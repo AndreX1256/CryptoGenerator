@@ -19,6 +19,7 @@ from CryptoGenerator.StategyDeepQLearning import StategyDeepQLearning
 from CryptoGenerator.VerboseLevel import VerboseLevel
 
 import time
+import matplotlib.pyplot as plt
 
 
 class CryptoGenerator: 
@@ -28,6 +29,8 @@ class CryptoGenerator:
         self.__start_money = start_money
         self.__verbose = verbose
         self.__strategy = StategyDeepQLearning()
+        # ToDo: put this history in extra class (training history)
+        self.__reward_per_episode = []
        
 
     def calculate_current_outcome(self, market, trader, tax_authority, start_money):
@@ -44,7 +47,7 @@ class CryptoGenerator:
         print("--- Running Crypto Generator ---")
         keep_running = True
         max_steps = 300
-        max_episodes = 100
+        max_episodes = 3
 
         for current_episode in range(max_episodes):
             time_start_episode = time.time()    
@@ -87,6 +90,9 @@ class CryptoGenerator:
             self.__strategy.epsilon(1 - (current_episode / max_episodes))
             self.__strategy.update_target_weights()
             
+            # update training history
+            self.__reward_per_episode.append(reward)
+            
             time_end_episode = time.time()
             if self.__verbose <= VerboseLevel.INFO: print ("execution time for training is: " + str((time_end_train - time_start_train) * 1000) + " ms")
             if self.__verbose <= VerboseLevel.INFO: print ("execution time for episode is: " + str((time_end_episode - time_start_episode) * 1000) + " ms")
@@ -95,6 +101,13 @@ class CryptoGenerator:
         print("--- End Crypto Generator ---")
         
         history.visualize()
+        
+        
+        plt.subplot(3, 1, 3)
+        plt.plot(self.__reward_per_episode)
+        plt.xlabel('episode')
+        plt.ylabel('reward')
+        plt.show()
         
 
 

@@ -46,7 +46,7 @@ class History:
         s_buy = np.ones(len(x_buy)) * 50
         s_sell = np.ones(len(x_sell)) * 50
         
-        plt.subplot(2, 1, 1)
+        plt.subplot(3, 1, 1)
         plt.scatter(x_buy, y_buy, s_buy, c="g", alpha=0.5, marker="^",  label="buy")
         plt.scatter(x_sell, y_sell, s_sell, c="r", alpha=0.5, marker="v",  label="sell")
 
@@ -55,7 +55,7 @@ class History:
         plt.ylabel('bitcoin price')
         plt.legend(loc='upper left')
         
-        plt.subplot(2, 1, 2)
+        plt.subplot(3, 1, 2)
         plt.plot(self.__outcome)
         plt.xlabel('date')
         plt.ylabel('outcome')
