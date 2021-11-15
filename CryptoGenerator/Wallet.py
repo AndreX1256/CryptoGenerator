@@ -6,31 +6,35 @@ Created on Sat Oct 30 17:28:03 2021
 """
 
 
+from CryptoGenerator.VerboseLevel import VerboseLevel
+
+
 class Wallet: 
 
 
-    def __init__(self, euros, bitcoins):
+    def __init__(self, euros, bitcoins, verbose):
         self.__euros = euros
         self.__bitcoins = bitcoins
+        self.__verbose = verbose
 
     
     def insert_euros(self, euros):
-        print("Wallet: insert " + str(euros) + "€")
+        if self.__verbose <= VerboseLevel.DEBUG: print("Wallet: insert " + str(euros) + "€")
         self.__euros += euros
         
         
     def remove_euros(self, euros):
-        print("Wallet: remove " + str(euros) + "€")
+        if self.__verbose <= VerboseLevel.DEBUG: print("Wallet: remove " + str(euros) + "€")
         self.__euros -= euros
         
     
     def insert_bitcoins(self, bitcoins):
-        print("Wallet: insert " + str(bitcoins) + "BTC")
+        if self.__verbose <= VerboseLevel.DEBUG: print("Wallet: insert " + str(bitcoins) + "BTC")
         self.__bitcoins += bitcoins
 
 
     def remove_bitcoins(self, bitcoins):
-        print("Wallet: remove " + str(bitcoins) + "BTC")
+        if self.__verbose <= VerboseLevel.DEBUG: print("Wallet: remove " + str(bitcoins) + "BTC")
         self.__bitcoins -= bitcoins        
         
         

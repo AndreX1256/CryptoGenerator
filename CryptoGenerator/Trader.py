@@ -14,33 +14,36 @@ from CryptoGenerator.StockMarket import TradeType
 from CryptoGenerator.TaxDeclaration import TaxDeclaration
 from CryptoGenerator.TaxDeclaration import TaxType
 
+from CryptoGenerator.VerboseLevel import VerboseLevel
+
 
 class Trader:
     
     
-    def __init__(self, start_money, strategy):
-        self.__wallet = Wallet(start_money,0)
+    def __init__(self, start_money, strategy, verbose):
+        self.__wallet = Wallet(start_money, 0, verbose)
+        self.__verbose = verbose
         self.__strategy = strategy
-        self.__tax_declaration = TaxDeclaration(TaxType.FIFO)
+        self.__tax_declaration = TaxDeclaration(TaxType.FIFO, verbose)
         
         
     def do_action(self, stock_market, input_data):
         action = self.__strategy.receive_action(input_data)
 
         if action.get_action_type() is ActionType.BUY:
-            print("Trader choose to buy for " + str(action.get_amount()) + "€")
+            if self.__verbose <= VerboseLevel.DEBUG: print("Trader choose to buy for " + str(action.get_amount()) + "€")
             self.buy(stock_market, action.get_amount())
         if action.get_action_type() is ActionType.BUYALL:
-            print("Trader choose to buy all")
+            if self.__verbose <= VerboseLevel.DEBUG: print("Trader choose to buy all")
             self.buy(stock_market, self.__wallet.euros())
         if action.get_action_type() is ActionType.SELL:
-            print("Trader choose to sell for " + str(action.get_amount()) + "€")
+            if self.__verbose <= VerboseLevel.DEBUG: print("Trader choose to sell for " + str(action.get_amount()) + "€")
             self.sell(stock_market, action.get_amount() / stock_market.bitcoin_price())
         if action.get_action_type() is ActionType.SELLALL:
-            print("Trader choose to sell all")
+            if self.__verbose <= VerboseLevel.DEBUG: print("Trader choose to sell all")
             self.sell(stock_market, self.__wallet.bitcoins())
         if action.get_action_type() is ActionType.HOLD:
-            print("Trader choose to hold")
+            if self.__verbose <= VerboseLevel.DEBUG: print("Trader choose to hold")
             self.hold()
 
         return action
@@ -50,20 +53,18 @@ class Trader:
         if (euros > self.__wallet.euros()): euros = self.__wallet.euros()
         if (euros <= 0): return
         purchase = stock_market.buy_bitcoins(self.__wallet, euros)
-        purchase.print_trade()
+        if self.__verbose <= VerboseLevel.DEBUG: purchase.print_trade()
         if purchase.trade_type() is not TradeType.DENIED:
             self.__tax_declaration.add_trade(purchase)
-        # print(len(self.__tax_declaration.purchases()))
-        # print(self.__tax_declaration.purchases()[0].print_trade())
-            
+           
         
     
     def sell(self, stock_market, bitcoins):
         if (bitcoins > self.__wallet.bitcoins()): bitcoins = self.__wallet.bitcoins()
         if (bitcoins <= 0): return
         sale = stock_market.sell_bitcoins(self.__wallet, bitcoins)
+        if self.__verbose <= VerboseLevel.DEBUG: sale.print_trade()
         if sale.trade_type() is not TradeType.DENIED:
-            sale.print_trade()
             self.__tax_declaration.add_trade(sale)
 
 
@@ -72,12 +73,12 @@ class Trader:
     
     
     def pay_taxes(self, euros):
-        print("Trader: paying taxes: " + str(euros) + "€")
+        if self.__verbose <= VerboseLevel.DEBUG: print("Trader: paying taxes: " + str(euros) + "€")
         self.__wallet.remove_euros(euros)
         
         
     def receive_tax_refund(self, euros):
-        print("Trader: receiving tax refund: " + str(euros) + "€")
+        if self.__verbose <= VerboseLevel.DEBUG: print("Trader: receiving tax refund: " + str(euros) + "€")
         self.__wallet.insert_euros(euros)
         
 
@@ -91,7 +92,7 @@ class Trader:
 
     def is_broke(self):
         if self.__wallet.euros() <= 0 and self.__wallet.bitcoins() <= 0:
-            print("Trader: is broke")
+            if self.__verbose <= VerboseLevel.DEBUG: print("Trader: is broke")
             return True
         else:
             return False

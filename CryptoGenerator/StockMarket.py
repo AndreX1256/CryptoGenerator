@@ -7,6 +7,9 @@ Created on Sun Oct 31 02:20:15 2021
 
 
 from CryptoGenerator.Wallet import Wallet
+
+from CryptoGenerator.VerboseLevel import VerboseLevel
+
 import copy
 from enum import Enum
 import random
@@ -72,7 +75,7 @@ class MarketUpdater:
         self.__total_steps = 80
         self.__relative_prive_values = np.sin(np.linspace(0.0, 360.0, num=self.__total_steps+1) * np.pi / 180.0 ) * ((self.__range_max - self.__range_min) / 2.0) + ((self.__range_min + self.__range_max) / 2.0)
         self.__relative_prive_values = self.__relative_prive_values[1:]
-        print(self.__relative_prive_values)
+        #print(self.__relative_prive_values)
 
 
     def update_market(self, market):
@@ -90,20 +93,21 @@ class MarketUpdater:
 class StockMarket: 
 
 
-    def __init__(self, bitcoin_price, trading_fees):
+    def __init__(self, bitcoin_price, trading_fees, verbose):
         self.__bitcoin_price = bitcoin_price
         self.__trading_fees = trading_fees
+        self.__verbose = verbose
         
         
     def update(self, bitcoin_price):
         self.__bitcoin_price = bitcoin_price
-        print("StockMarket: new bitcoin price is " + str(bitcoin_price)) 
+        if self.__verbose <= VerboseLevel.DEBUG: print("StockMarket: new bitcoin price is " + str(bitcoin_price)) 
     
     
     def buy_bitcoins(self, wallet, euros):
         if (euros <= self.__trading_fees): return Trade(TradeType.DENIED, 0, 0)
         if (euros > wallet.euros()): return Trade(TradeType.DENIED, 0, 0)
-        print("StockMarket: buying bitcoins")
+        if self.__verbose <= VerboseLevel.DEBUG: print("StockMarket: buying bitcoins")
         bitcoins = (euros - self.__trading_fees) / self.__bitcoin_price
         wallet.remove_euros(euros)
         wallet.insert_bitcoins(bitcoins)
@@ -112,7 +116,7 @@ class StockMarket:
         
     def sell_bitcoins(self, wallet, bitcoins):
         if (bitcoins > wallet.bitcoins()): return Trade(TradeType.DENIED, 0, 0)
-        print("StockMarket: selling bitcoins")
+        if self.__verbose <= VerboseLevel.DEBUG: print("StockMarket: selling bitcoins")
         euros = (bitcoins * self.__bitcoin_price) - self.__trading_fees
         wallet.remove_bitcoins(bitcoins)
         wallet.insert_euros(euros)

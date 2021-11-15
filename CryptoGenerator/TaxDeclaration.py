@@ -7,8 +7,12 @@ Created on Sun Oct 31 21:35:26 2021
 
 
 from CryptoGenerator.StockMarket import TradeType
+
+from CryptoGenerator.VerboseLevel import VerboseLevel
+
 from enum import Enum
 import numpy as np
+
 
 class TaxType(Enum):
     FIFO = 1
@@ -18,10 +22,11 @@ class TaxType(Enum):
 class TaxDeclaration:
     
     
-    def __init__(self, tax_type):
+    def __init__(self, tax_type, verbose):
         self.__tax_type = tax_type
         self.__purchases = []
         self.__profit_to_declare = 0
+        self.__verbose = verbose
         
 
     def add_trade(self, trade):
@@ -59,7 +64,7 @@ class TaxDeclaration:
                 elif self.__tax_type is TaxType.LIFO: self.__purchases = self.__purchases[:len(self.__purchases)-2]
         
         self.__profit_to_declare += current_profit
-        print("TaxDeclaration: profit to declare: " + str(self.__profit_to_declare) + "€")
+        if self.__verbose <= VerboseLevel.DEBUG: print("TaxDeclaration: profit to declare: " + str(self.__profit_to_declare) + "€")
             
             
 

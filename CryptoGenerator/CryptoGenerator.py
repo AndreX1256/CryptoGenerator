@@ -16,11 +16,15 @@ from CryptoGenerator.StrategyRandom import StrategyRandom
 from CryptoGenerator.StrategyScripted import StrategyScripted
 from CryptoGenerator.StategyDeepQLearning import StategyDeepQLearning
 
+from CryptoGenerator.VerboseLevel import VerboseLevel
+
+
 class CryptoGenerator: 
 
 
-    def __init__(self, start_money):
+    def __init__(self, start_money, verbose):
         self.__start_money = start_money
+        self.__verbose = verbose
         self.__strategy = StategyDeepQLearning()
        
 
@@ -30,7 +34,7 @@ class CryptoGenerator:
         current_bitcoin_value = current_bitcoins * market.bitcoin_price()
         current_taxes_to_pay = tax_authority.calculate_taxes_to_pay(trader.tax_declaration())
         current_outcome = current_euros + current_bitcoin_value - current_taxes_to_pay - start_money
-        print ("CryptoGenerator: current outcome is " + str(current_outcome) + "€")
+        if self.__verbose <= VerboseLevel.DEBUG: print ("CryptoGenerator: current outcome is " + str(current_outcome) + "€")
         return current_outcome
         
     
@@ -41,17 +45,17 @@ class CryptoGenerator:
         max_episodes = 100
 
         for current_episode in range(max_episodes):
-            print("--- next episode (" + str(current_episode) + ")---")
+            if self.__verbose <= VerboseLevel.INFO: print("--- next episode (" + str(current_episode) + ")---")
             current_step = 0
             
-            trader = Trader(self.__start_money, self.__strategy)
-            tax_authority = TaxAuthority(taxes_percentage = 45)
-            stock_market = StockMarket(bitcoin_price = 35000, trading_fees = 1)
+            trader = Trader(self.__start_money, self.__strategy, self.__verbose)
+            tax_authority = TaxAuthority(taxes_percentage = 45, verbose = self.__verbose)
+            stock_market = StockMarket(bitcoin_price = 35000, trading_fees = 1, verbose = self.__verbose)
             market_updater = MarketUpdater(34000, 36000)
             history = History()
             
             while not trader.is_broke() and current_step < max_steps and keep_running:
-                print("--- next step (" + str(current_step) + ")---")
+                if self.__verbose <= VerboseLevel.DEBUG: print("--- next step (" + str(current_step) + ")---")
                 
                 # do action
                 state = InputData(history, trader.wallet(), stock_market.bitcoin_price())
@@ -59,7 +63,7 @@ class CryptoGenerator:
                 tax_authority.calculate_taxes_to_pay(trader.tax_declaration())
                 
                 # evaluate
-                trader.show()
+                if self.__verbose <= VerboseLevel.DEBUG: trader.show()
                 outcome = self.calculate_current_outcome(stock_market, trader, tax_authority, self.__start_money)
                 history.update(current_step+1, stock_market.bitcoin_price(), action, outcome)
                 
