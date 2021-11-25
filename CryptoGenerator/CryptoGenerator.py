@@ -12,8 +12,8 @@ from CryptoGenerator.StockMarket import MarketUpdater
 from CryptoGenerator.History import History
 from CryptoGenerator.InputData import InputData
 
-from CryptoGenerator.StrategyRandom import StrategyRandom
-from CryptoGenerator.StrategyScripted import StrategyScripted
+#from CryptoGenerator.StrategyRandom import StrategyRandom
+#from CryptoGenerator.StrategyScripted import StrategyScripted
 from CryptoGenerator.StategyDeepQLearning import StategyDeepQLearning
 
 from CryptoGenerator.VerboseLevel import VerboseLevel
@@ -78,7 +78,7 @@ class CryptoGenerator:
                 market_updater.update_market(stock_market)
                 current_step += 1
                 
-                reward = self.calculate_current_outcome(stock_market, trader, tax_authority, self.__start_money)
+                reward = self.calculate_current_outcome(stock_market, trader, tax_authority, self.__start_money) / 100
                 next_state = InputData(history, trader.wallet(), stock_market.bitcoin_price())
                 self.__strategy = trader.strategy()
                 self.__strategy.update(state.processed_data(), action, reward, next_state.processed_data())

@@ -62,11 +62,28 @@ class StategyDeepQLearning(Strategy):
     def train(self):
         minibatch = random.sample(self._expirience_replay, self._batch_size)
 
+        #training_batch_state = np.zeros([self._batch_size, self._state_size])
+        training_batch_state = []
+        training_batch_action = []
+        training_batch_reward = []
+        training_batch_next_state = []
+        
         for state, action, reward, next_state in minibatch:
             
-            #array_state = np.array((state))
-            # x_train = np.reshape(state, (3, 1))
-            # y_train = np.reshape(next_state, (3, 1))
+            #x_state = np.reshape(state, (1, 3)) 
+            training_batch_state.append(state)
+            #state_array=np.array(state)
+            #numpy_array = np.vstack([training_batch_state, state_array])
+            
+            #np.append(training_batch_state, np.array(state), axis=0)
+            #training_batch_state.append(np.array([state]))
+            
+            #x_next_state = np.reshape(next_state, (1, 3))
+            training_batch_next_state.append(next_state)
+            #training_batch_next_state.append(np.array([next_state]))
+            
+            
+            training_batch_reward.append(reward)
             
             action_number = 0
             if action.get_action_type() is ActionType.HOLD:
@@ -75,22 +92,21 @@ class StategyDeepQLearning(Strategy):
                 action_number = 1
             if action.get_action_type() is ActionType.SELL:
                 action_number = 2
+                
+            training_batch_action.append(action_number)
             
-            x_state = np.reshape(state, (1, 3))   
-            target = self.q_network.predict(x_state)[0,:]
-  
-            #action_values = self.q_network.predict(np.array([state]))[0,:]
-            #target = self.q_network.predict(state)
-            #t = self.target_network.predict(y_train)
-            
-            x_next_state = np.reshape(next_state, (1, 3))
-            t = self.target_network.predict(x_next_state)[0,:]
-            
-            target[action_number] = reward + self._gamma * np.amax(t)
-            y_train = np.reshape(target, (1, 3))
+              
+        batch_array_state = np.array([training_batch_state])[0]
+        target = self.q_network.predict(batch_array_state, batch_size=self._batch_size)
 
-            self.q_network.fit(x_state, y_train, epochs=1, verbose=0)
-            #self.q_network.fit([training_batch_current_state, training_batch_action], target, batch_size=64, verbose=self.verbose)
+        batch_array_next_state = np.array([training_batch_next_state])[0]
+        t = self.target_network.predict(batch_array_next_state, batch_size=self._batch_size)
+            
+        target[0][training_batch_action] = training_batch_reward + self._gamma * np.amax(t[0])
+        #y_train = np.reshape(target, (1, 3))
+
+        #self.q_network.fit(x_state, y_train, epochs=1, verbose=0)
+        self.q_network.fit(batch_array_state, target, batch_size=64, verbose=True)
     
     
     def update_target_weights(self):
@@ -117,6 +133,7 @@ class StategyDeepQLearning(Strategy):
     #     # model.add(Dense(self._action_size, activation='linear'))
         
         model.add(Dense(10, input_dim=self._state_size, activation='relu'))
+        #model.add(Dense(10, input_shape=(64,self._state_size), activation='relu'))
         model.add(Dense(10, activation='relu'))
         model.add(Dense(self._action_size, activation='linear'))
 
