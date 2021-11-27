@@ -127,5 +127,9 @@ class StockMarket:
         return self.__bitcoin_price
     
     
+    def trading_fees(self):
+        return self.__trading_fees
+    
+    
     def print_stock_market(self):
         print ( "StockMarket: bitcoin price is " + str(self.__bitcoin_price) + "€")

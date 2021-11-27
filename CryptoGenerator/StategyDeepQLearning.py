@@ -29,9 +29,9 @@ class StategyDeepQLearning(Strategy):
         self._action_size = 3
         self._optimizer = Adam(learning_rate=0.01)
         self._expirience_replay = deque(maxlen=2000)
-        self._gamma = 0.95
+        self._gamma = 0.98
         self._epsilon = 1.0
-        self._batch_size = 64
+        self._batch_size = 32
         self._tau = 0.1 #0.001
         
         # Build networks
@@ -44,7 +44,13 @@ class StategyDeepQLearning(Strategy):
     
     def receive_action(self, input_data):
         if np.random.rand() <= self._epsilon:
-            return np.random.choice(self.__action_list, 1)[0]
+            if np.random.rand() < 0.9:
+                return Action(ActionType.HOLD)
+            elif np.random.rand() < 0.5:
+                return Action(ActionType.BUYALL)
+            else:
+                return Action(ActionType.SELLALL)
+            #return np.random.choice(self.__action_list, 1)[0]
         else:
             x_train = np.reshape(input_data.processed_data(), (1, 3))       
             action_values = self.q_network.predict(x_train)[0,:]
@@ -90,7 +96,7 @@ class StategyDeepQLearning(Strategy):
                 action_number = 0
             if action.get_action_type() is ActionType.BUYALL:
                 action_number = 1
-            if action.get_action_type() is ActionType.SELL:
+            if action.get_action_type() is ActionType.SELLALL:
                 action_number = 2
                 
             training_batch_action.append(action_number)
@@ -132,9 +138,9 @@ class StategyDeepQLearning(Strategy):
     #     # model.add(Dense(50, activation='relu'))
     #     # model.add(Dense(self._action_size, activation='linear'))
         
-        model.add(Dense(10, input_dim=self._state_size, activation='relu'))
+        model.add(Dense(10, input_dim=self._state_size, activation='tanh'))
         #model.add(Dense(10, input_shape=(64,self._state_size), activation='relu'))
-        model.add(Dense(10, activation='relu'))
+        model.add(Dense(10, activation='tanh'))
         model.add(Dense(self._action_size, activation='linear'))
 
         model.compile(loss='mse', optimizer=self._optimizer)

@@ -36,7 +36,7 @@ class CryptoGenerator:
     def calculate_current_outcome(self, market, trader, tax_authority, start_money):
         current_euros = trader.wallet().euros()
         current_bitcoins = trader.wallet().bitcoins()
-        current_bitcoin_value = current_bitcoins * market.bitcoin_price()
+        current_bitcoin_value = current_bitcoins * market.bitcoin_price() - market.trading_fees()
         current_taxes_to_pay = tax_authority.calculate_taxes_to_pay(trader.tax_declaration())
         current_outcome = current_euros + current_bitcoin_value - current_taxes_to_pay - start_money
         if self.__verbose <= VerboseLevel.DEBUG: print ("CryptoGenerator: current outcome is " + str(current_outcome) + "€")
@@ -47,13 +47,15 @@ class CryptoGenerator:
         print("--- Running Crypto Generator ---")
         keep_running = True
         max_steps = 300
-        max_episodes = 3
+        max_episodes = 1000
 
         for current_episode in range(max_episodes):
             time_start_episode = time.time()    
     
             if self.__verbose <= VerboseLevel.INFO: print("--- next episode (" + str(current_episode) + ")---")
             current_step = 0
+            
+            total_reward = 0
             
             trader = Trader(self.__start_money, self.__strategy, self.__verbose)
             tax_authority = TaxAuthority(taxes_percentage = 45, verbose = self.__verbose)
@@ -79,6 +81,7 @@ class CryptoGenerator:
                 current_step += 1
                 
                 reward = self.calculate_current_outcome(stock_market, trader, tax_authority, self.__start_money) / 100
+                total_reward += reward
                 next_state = InputData(history, trader.wallet(), stock_market.bitcoin_price())
                 self.__strategy = trader.strategy()
                 self.__strategy.update(state.processed_data(), action, reward, next_state.processed_data())
@@ -87,11 +90,11 @@ class CryptoGenerator:
             time_start_train = time.time()  
             self.__strategy.train()
             time_end_train = time.time()
-            self.__strategy.epsilon(1 - (current_episode / max_episodes))
+            self.__strategy.epsilon(1 - ((current_episode % (max_episodes/3)) / (max_episodes/3)))
             self.__strategy.update_target_weights()
             
             # update training history
-            self.__reward_per_episode.append(reward)
+            self.__reward_per_episode.append(total_reward)
             
             time_end_episode = time.time()
             if self.__verbose <= VerboseLevel.INFO: print ("execution time for training is: " + str((time_end_train - time_start_train) * 1000) + " ms")

@@ -9,6 +9,7 @@ Created on Sun Oct 31 02:41:03 2021
 from CryptoGenerator.Wallet import Wallet
 
 from CryptoGenerator.Action import ActionType
+from CryptoGenerator.Action import Action
 
 from CryptoGenerator.StockMarket import TradeType
 from CryptoGenerator.TaxDeclaration import TaxDeclaration
@@ -29,6 +30,8 @@ class Trader:
         
     def do_action(self, stock_market, input_data):
         action = self.__strategy.receive_action(input_data)
+        if action.get_action_type() is ActionType.BUYALL and self.__wallet.euros() <= 0: action = Action(ActionType.HOLD)
+        if action.get_action_type() is ActionType.SELLALL and self.__wallet.bitcoins() <= 0: action = Action(ActionType.HOLD)
 
         if action.get_action_type() is ActionType.BUY:
             if self.__verbose <= VerboseLevel.DEBUG: print("Trader choose to buy for " + str(action.get_amount()) + "€")
@@ -50,6 +53,7 @@ class Trader:
         
         
     def buy(self, stock_market, euros):
+        #if (self.__wallet.euros() <= 0): self.__wallet.remove_euros(10)
         if (euros > self.__wallet.euros()): euros = self.__wallet.euros()
         if (euros <= 0): return
         purchase = stock_market.buy_bitcoins(self.__wallet, euros)
@@ -60,6 +64,7 @@ class Trader:
         
     
     def sell(self, stock_market, bitcoins):
+        #if (self.__wallet.bitcoins() <= 0): self.__wallet.remove_euros(10)
         if (bitcoins > self.__wallet.bitcoins()): bitcoins = self.__wallet.bitcoins()
         if (bitcoins <= 0): return
         sale = stock_market.sell_bitcoins(self.__wallet, bitcoins)
