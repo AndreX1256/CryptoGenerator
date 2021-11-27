@@ -52,7 +52,7 @@ class StategyDeepQLearning(Strategy):
                 return Action(ActionType.SELLALL)
             #return np.random.choice(self.__action_list, 1)[0]
         else:
-            x_train = np.reshape(input_data.processed_data(), (1, 3))       
+            x_train = np.reshape(input_data.processed_data(), (1, self._state_size))       
             action_values = self.q_network.predict(x_train)[0,:]
             index = np.argmax(action_values)
             return self.__action_list[index]

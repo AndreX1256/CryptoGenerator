@@ -36,7 +36,9 @@ class CryptoGenerator:
     def calculate_current_outcome(self, market, trader, tax_authority, start_money):
         current_euros = trader.wallet().euros()
         current_bitcoins = trader.wallet().bitcoins()
-        current_bitcoin_value = current_bitcoins * market.bitcoin_price() - market.trading_fees()
+        current_bitcoin_value = 0
+        if current_bitcoins > 0:
+            current_bitcoin_value = current_bitcoins * market.bitcoin_price() - market.trading_fees()
         current_taxes_to_pay = tax_authority.calculate_taxes_to_pay(trader.tax_declaration())
         current_outcome = current_euros + current_bitcoin_value - current_taxes_to_pay - start_money
         if self.__verbose <= VerboseLevel.DEBUG: print ("CryptoGenerator: current outcome is " + str(current_outcome) + "€")
