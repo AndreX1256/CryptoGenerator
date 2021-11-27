@@ -107,8 +107,11 @@ class StategyDeepQLearning(Strategy):
 
         batch_array_next_state = np.array([training_batch_next_state])[0]
         t = self.target_network.predict(batch_array_next_state, batch_size=self._batch_size)
+        new_target = np.amax(t, axis=1)
+        
+        for i in range(self._batch_size):
+            target[i][training_batch_action[i]] = training_batch_reward[i] + self._gamma * new_target[i]
             
-        target[0][training_batch_action] = training_batch_reward + self._gamma * np.amax(t[0])
         #y_train = np.reshape(target, (1, 3))
 
         #self.q_network.fit(x_state, y_train, epochs=1, verbose=0)
