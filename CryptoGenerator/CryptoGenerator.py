@@ -11,6 +11,7 @@ from CryptoGenerator.StockMarket import StockMarket
 from CryptoGenerator.StockMarket import MarketUpdater
 from CryptoGenerator.History import History
 from CryptoGenerator.InputData import InputData
+from CryptoGenerator.Action import ActionType
 
 #from CryptoGenerator.StrategyRandom import StrategyRandom
 #from CryptoGenerator.StrategyScripted import StrategyScripted
@@ -36,9 +37,9 @@ class CryptoGenerator:
     def calculate_current_outcome(self, market, trader, tax_authority, start_money):
         current_euros = trader.wallet().euros()
         current_bitcoins = trader.wallet().bitcoins()
-        current_bitcoin_value = 0
-        if current_bitcoins > 0:
-            current_bitcoin_value = current_bitcoins * market.bitcoin_price() - market.trading_fees()
+        #current_bitcoin_value = 0
+        #if current_bitcoins > 0:
+        current_bitcoin_value = current_bitcoins * market.bitcoin_price()
         current_taxes_to_pay = tax_authority.calculate_taxes_to_pay(trader.tax_declaration())
         current_outcome = current_euros + current_bitcoin_value - current_taxes_to_pay - start_money
         if self.__verbose <= VerboseLevel.DEBUG: print ("CryptoGenerator: current outcome is " + str(current_outcome) + "€")
@@ -48,8 +49,8 @@ class CryptoGenerator:
     def run(self):
         print("--- Running Crypto Generator ---")
         keep_running = True
-        max_steps = 300
-        max_episodes = 1000
+        max_steps = 200
+        max_episodes = 100
 
         for current_episode in range(max_episodes):
             time_start_episode = time.time()    
@@ -58,6 +59,7 @@ class CryptoGenerator:
             current_step = 0
             
             total_reward = 0
+            last_outcome = 0
             
             trader = Trader(self.__start_money, self.__strategy, self.__verbose)
             tax_authority = TaxAuthority(taxes_percentage = 45, verbose = self.__verbose)
@@ -82,7 +84,12 @@ class CryptoGenerator:
                 market_updater.update_market(stock_market)
                 current_step += 1
                 
-                reward = self.calculate_current_outcome(stock_market, trader, tax_authority, self.__start_money) / 100
+                reward = 0 #self.calculate_current_outcome(stock_market, trader, tax_authority, self.__start_money) - outcome
+                
+                #if action.get_action_type() is ActionType.SELLALL:
+                reward = outcome - last_outcome
+                last_outcome = outcome
+                    
                 total_reward += reward
                 next_state = InputData(history, trader.wallet(), stock_market.bitcoin_price())
                 self.__strategy = trader.strategy()

@@ -44,7 +44,7 @@ class StategyDeepQLearning(Strategy):
     
     def receive_action(self, input_data):
         if np.random.rand() <= self._epsilon:
-            if np.random.rand() < 0.9:
+            if np.random.rand() < 0.8:
                 return Action(ActionType.HOLD)
             elif np.random.rand() < 0.5:
                 return Action(ActionType.BUYALL)
@@ -115,7 +115,7 @@ class StategyDeepQLearning(Strategy):
         #y_train = np.reshape(target, (1, 3))
 
         #self.q_network.fit(x_state, y_train, epochs=1, verbose=0)
-        self.q_network.fit(batch_array_state, target, batch_size=64, verbose=True)
+        self.q_network.fit(batch_array_state, target, batch_size=self._batch_size, verbose=True)
     
     
     def update_target_weights(self):
@@ -144,7 +144,7 @@ class StategyDeepQLearning(Strategy):
         model.add(Dense(10, input_dim=self._state_size, activation='tanh'))
         #model.add(Dense(10, input_shape=(64,self._state_size), activation='relu'))
         model.add(Dense(10, activation='tanh'))
-        model.add(Dense(self._action_size, activation='linear'))
+        model.add(Dense(self._action_size, activation='softmax'))
 
         model.compile(loss='mse', optimizer=self._optimizer)
         return model
