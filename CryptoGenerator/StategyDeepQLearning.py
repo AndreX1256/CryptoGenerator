@@ -9,10 +9,14 @@ Created on Sat Nov 13 18:05:41 2021
 import numpy as np
 from collections import deque
 import random
+from datetime import datetime
+
 
 from tensorflow.keras import Model, Sequential, Input
 from tensorflow.keras.layers import Dense, Embedding, Reshape
 from tensorflow.keras.optimizers import Adam
+
+from CryptoGenerator.VerboseLevel import VerboseLevel
 
 from CryptoGenerator.Action import Action
 from CryptoGenerator.Action import ActionType
@@ -23,7 +27,7 @@ from CryptoGenerator.Strategy import Strategy
 class StategyDeepQLearning(Strategy):
     
     
-    def __init__(self):
+    def __init__(self, verbose):
         self.create_strategy()
         self._state_size = 3
         self._action_size = 3
@@ -33,6 +37,8 @@ class StategyDeepQLearning(Strategy):
         self._epsilon = 1.0
         self._batch_size = 32
         self._tau = 0.1 #0.001
+        
+        self.__verbose = verbose
         
         # Build networks
         self.q_network = self.build_compile_model()
@@ -115,7 +121,9 @@ class StategyDeepQLearning(Strategy):
         #y_train = np.reshape(target, (1, 3))
 
         #self.q_network.fit(x_state, y_train, epochs=1, verbose=0)
-        self.q_network.fit(batch_array_state, target, batch_size=self._batch_size, verbose=True)
+        train_verbose  = False
+        if self.__verbose <= VerboseLevel.DEBUG: train_verbose = True
+        self.q_network.fit(batch_array_state, target, batch_size=self._batch_size, verbose=train_verbose)
     
     
     def update_target_weights(self):
@@ -163,3 +171,19 @@ class StategyDeepQLearning(Strategy):
     
     def alighn_target_model(self):
         self.target_network.set_weights(self.q_network.get_weights())
+        
+    
+    def save_network(self, path=''):
+        weights = self.q_network.get_weights()
+        now = datetime.now()
+        complete_file_path = path + "network_weights_" + now.strftime("%Y-%m-%d-%H-%M-%S") + ".npy"
+        np.save(complete_file_path, weights)
+        if self.__verbose <= VerboseLevel.INFO: print("Saved network to " + complete_file_path)
+        
+        
+    def load_network(self, path='', name='network_weights'):
+        complete_file_path = path + name + ".npy"
+        weights = np.load(complete_file_path, allow_pickle=True)
+        self.q_network.set_weights(weights)
+        self.target_network.set_weights(weights)
+        if self.__verbose <= VerboseLevel.INFO: print("Loaded network from " + complete_file_path)

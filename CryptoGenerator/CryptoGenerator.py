@@ -26,10 +26,13 @@ import matplotlib.pyplot as plt
 class CryptoGenerator: 
 
 
-    def __init__(self, start_money, verbose):
+    def __init__(self, start_money, load_existing_network, verbose):
         self.__start_money = start_money
         self.__verbose = verbose
-        self.__strategy = StategyDeepQLearning()
+        
+        self.__strategy = StategyDeepQLearning(verbose)
+        if load_existing_network is not None: self.__strategy.load_network(path='data/trained_networks/', name=load_existing_network)
+        
         # ToDo: put this history in extra class (training history)
         self.__reward_per_episode = []
        
@@ -112,6 +115,7 @@ class CryptoGenerator:
         
         print("--- End Crypto Generator ---")
         
+        self.__strategy.save_network(path='data/trained_networks/')
         history.visualize()
         
         
