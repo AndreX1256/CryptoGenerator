@@ -83,17 +83,18 @@ class CryptoGenerator:
                 outcome = self.calculate_current_outcome(stock_market, trader, tax_authority, self.__start_money)
                 history.update(current_step+1, stock_market.bitcoin_price(), action, outcome)
                 
+                # reward
+                reward = 0 #self.calculate_current_outcome(stock_market, trader, tax_authority, self.__start_money) - outcome
+                #if action.get_action_type() is ActionType.SELLALL:
+                reward = outcome - last_outcome
+                last_outcome = outcome
+                total_reward += reward
+                
                 # update
                 market_updater.update_market(stock_market)
                 current_step += 1
                 
-                reward = 0 #self.calculate_current_outcome(stock_market, trader, tax_authority, self.__start_money) - outcome
-                
-                #if action.get_action_type() is ActionType.SELLALL:
-                reward = outcome - last_outcome
-                last_outcome = outcome
-                    
-                total_reward += reward
+                # get next state
                 next_state = InputData(history, trader.wallet(), stock_market.bitcoin_price())
                 self.__strategy = trader.strategy()
                 self.__strategy.update(state.processed_data(), action, reward, next_state.processed_data())
@@ -102,7 +103,8 @@ class CryptoGenerator:
             time_start_train = time.time()  
             self.__strategy.train()
             time_end_train = time.time()
-            self.__strategy.epsilon(1 - ((current_episode % (max_episodes/3)) / (max_episodes/3)))
+            self.__strategy.epsilon(1 - (current_episode / max_episodes))
+            #self.__strategy.epsilon(1 - ((current_episode % (max_episodes/3)) / (max_episodes/3)))
             self.__strategy.update_target_weights()
             
             # update training history
