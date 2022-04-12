@@ -21,7 +21,7 @@ from CryptoGenerator.VerboseLevel import VerboseLevel
 
 import time
 import matplotlib.pyplot as plt
-
+import copy
 
 class CryptoGenerator: 
 
@@ -43,7 +43,7 @@ class CryptoGenerator:
         #current_bitcoin_value = 0
         #if current_bitcoins > 0:
         current_bitcoin_value = current_bitcoins * market.bitcoin_price()
-        current_taxes_to_pay = tax_authority.calculate_taxes_to_pay(trader.tax_declaration())
+        current_taxes_to_pay = 0#tax_authority.calculate_taxes_to_pay(trader.tax_declaration())
         current_outcome = current_euros + current_bitcoin_value - current_taxes_to_pay - start_money
         if self.__verbose <= VerboseLevel.DEBUG: print ("CryptoGenerator: current outcome is " + str(current_outcome) + "€")
         return current_outcome
@@ -52,8 +52,8 @@ class CryptoGenerator:
     def run(self):
         print("--- Running Crypto Generator ---")
         keep_running = True
-        max_steps = 200
-        max_episodes = 100
+        max_steps = 500
+        max_episodes = 5000
 
         for current_episode in range(max_episodes):
             time_start_episode = time.time()    
@@ -63,41 +63,86 @@ class CryptoGenerator:
             
             total_reward = 0
             last_outcome = 0
+            last_bitcoin_price = 0
             
             trader = Trader(self.__start_money, self.__strategy, self.__verbose)
             tax_authority = TaxAuthority(taxes_percentage = 45, verbose = self.__verbose)
-            stock_market = StockMarket(bitcoin_price = 35000, trading_fees = 1, verbose = self.__verbose)
+            stock_market = StockMarket(bitcoin_price = 35000, trading_fees = 0, verbose = self.__verbose)
             market_updater = MarketUpdater(34000, 36000)
             history = History()
+            
+            current_buy_in_price = 0
             
             while not trader.is_broke() and current_step < max_steps and keep_running:
                 if self.__verbose <= VerboseLevel.DEBUG: print("--- next step (" + str(current_step) + ")---")
                 
+                market_bitcoin_trend = 0
+                if stock_market.bitcoin_price() > last_bitcoin_price:
+                    market_bitcoin_trend = 1
+                if stock_market.bitcoin_price() < last_bitcoin_price:
+                    market_bitcoin_trend = -1
+                    
                 # do action
-                state = InputData(history, trader.wallet(), stock_market.bitcoin_price())
+                state = InputData(copy.copy(history), trader.wallet(), stock_market.bitcoin_price(), current_buy_in_price, market_bitcoin_trend)
                 action = trader.do_action(stock_market, state)
                 tax_authority.calculate_taxes_to_pay(trader.tax_declaration())
+                
+          
                 
                 # evaluate
                 if self.__verbose <= VerboseLevel.DEBUG: trader.show()
                 outcome = self.calculate_current_outcome(stock_market, trader, tax_authority, self.__start_money)
                 history.update(current_step+1, stock_market.bitcoin_price(), action, outcome)
                 
+                # update
+                last_bitcoin_price = stock_market.bitcoin_price()
+                market_updater.update_market(stock_market)
+                
+                market_bitcoin_trend = 0
+                if stock_market.bitcoin_price() > last_bitcoin_price:
+                    market_bitcoin_trend = 1
+                if stock_market.bitcoin_price() < last_bitcoin_price:
+                    market_bitcoin_trend = -1
+                
                 # reward
+                
                 reward = 0 #self.calculate_current_outcome(stock_market, trader, tax_authority, self.__start_money) - outcome
-                #if action.get_action_type() is ActionType.SELLALL:
-                reward = outcome - last_outcome
-                last_outcome = outcome
+                
+                if action.get_action_type() is ActionType.SELLALL:
+                    reward = stock_market.bitcoin_price() - current_buy_in_price
+                 #   current_outcome = outcome - last_outcome
+                  #  if outcome > last_outcome: reward = 1
+                   # if outcome < last_outcome: reward = -1
+                    #last_outcome = outcome
+                #if reward > 0: reward = 1
+                #if reward <= 0: reward = -1
+                    #last_outcome = outcome
+                #if action.get_action_type() is ActionType.BUYALL:
+                    #last_outcome = outcome
+                #reward = (outcome / last_outcome)
+                
+                
+                #reward = outcome
+                #start_budget = trader.wallet().euros() - current_outcome
+                
+                    #if reward > 0: reward = 1
+                    #if reward < 0: reward = -1
+                    
                 total_reward += reward
                 
-                # update
-                market_updater.update_market(stock_market)
-                current_step += 1
+                if action.get_action_type() is ActionType.SELLALL:
+                    current_buy_in_price = 0
+                if action.get_action_type() is ActionType.BUYALL:
+                    current_buy_in_price = stock_market.bitcoin_price() 
                 
                 # get next state
-                next_state = InputData(history, trader.wallet(), stock_market.bitcoin_price())
+                next_state = InputData(copy.copy(history), trader.wallet(), stock_market.bitcoin_price(), current_buy_in_price, market_bitcoin_trend)
                 self.__strategy = trader.strategy()
-                self.__strategy.update(state.processed_data(), action, reward, next_state.processed_data())
+                
+                # feed experience replay
+                if current_step > 0: self.__strategy.update(state.processed_data(), action, reward, next_state.processed_data())
+                
+                current_step += 1
             
             # train and update network
             time_start_train = time.time()  

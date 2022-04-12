@@ -18,7 +18,7 @@ class History:
         self.__bitcoin_price = []
         self.__action = []
         self.__outcome = []
-        
+                
     def update(self, date, bitcoin_price, action, outcome):
         self.__date.append(date)
         self.__bitcoin_price.append(bitcoin_price)

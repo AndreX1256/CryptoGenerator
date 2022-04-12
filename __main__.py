@@ -16,7 +16,7 @@ def main():
 
     start_money = 1000
     verbose = VerboseLevel.INFO
-    load_existing_network = None# 'network_weights'
+    load_existing_network = None#'network_weights_2021-12-01-14-36-47'
     crypto_generator = CryptoGenerator(start_money=start_money, load_existing_network=load_existing_network, verbose=verbose)
     crypto_generator.run()
     

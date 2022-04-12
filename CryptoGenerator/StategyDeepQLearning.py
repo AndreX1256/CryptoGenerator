@@ -29,7 +29,7 @@ class StategyDeepQLearning(Strategy):
     
     def __init__(self, verbose):
         self.create_strategy()
-        self._state_size = 3
+        self._state_size = 5
         self._action_size = 3
         self._optimizer = Adam(learning_rate=0.01)
         self._expirience_replay = deque(maxlen=2000)
@@ -49,6 +49,8 @@ class StategyDeepQLearning(Strategy):
     
     
     def receive_action(self, input_data):
+        #if np.random.rand() <= 0.0:
+        #if np.random.rand() <= max(self._epsilon,0.1):
         if np.random.rand() <= self._epsilon:
             if np.random.rand() < 0.8:
                 return Action(ActionType.HOLD)
@@ -149,10 +151,10 @@ class StategyDeepQLearning(Strategy):
     #     # model.add(Dense(50, activation='relu'))
     #     # model.add(Dense(self._action_size, activation='linear'))
         
-        model.add(Dense(10, input_dim=self._state_size, activation='tanh'))
+        model.add(Dense(15, input_dim=self._state_size, activation='tanh'))
         #model.add(Dense(10, input_shape=(64,self._state_size), activation='relu'))
         model.add(Dense(10, activation='tanh'))
-        model.add(Dense(self._action_size, activation='softmax'))
+        model.add(Dense(self._action_size, activation='linear'))
 
         model.compile(loss='mse', optimizer=self._optimizer)
         return model

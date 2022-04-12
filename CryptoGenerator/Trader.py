@@ -26,12 +26,20 @@ class Trader:
         self.__verbose = verbose
         self.__strategy = strategy
         self.__tax_declaration = TaxDeclaration(TaxType.FIFO, verbose)
+        self.__buy_once = False
         
         
     def do_action(self, stock_market, input_data):
         action = self.__strategy.receive_action(input_data)
+        
+        if self.__buy_once:
+            self.__buy_once = False
+            action = Action(ActionType.BUYALL)
+        
         if action.get_action_type() is ActionType.BUYALL and self.__wallet.euros() <= 0: action = Action(ActionType.HOLD)
         if action.get_action_type() is ActionType.SELLALL and self.__wallet.bitcoins() <= 0: action = Action(ActionType.HOLD)
+
+
 
         if action.get_action_type() is ActionType.BUY:
             if self.__verbose <= VerboseLevel.DEBUG: print("Trader choose to buy for " + str(action.get_amount()) + "€")
