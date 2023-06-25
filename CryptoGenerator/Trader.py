@@ -27,6 +27,7 @@ class Trader:
         self.__strategy = strategy
         self.__tax_declaration = TaxDeclaration(TaxType.FIFO, verbose)
         self.__buy_once = False
+        self.__last_trade = None
         
         
     def do_action(self, stock_market, input_data):
@@ -43,16 +44,16 @@ class Trader:
 
         if action.get_action_type() is ActionType.BUY:
             if self.__verbose <= VerboseLevel.DEBUG: print("Trader choose to buy for " + str(action.get_amount()) + "€")
-            self.buy(stock_market, action.get_amount())
+            self.__last_trade = self.buy(stock_market, action.get_amount())
         if action.get_action_type() is ActionType.BUYALL:
             if self.__verbose <= VerboseLevel.DEBUG: print("Trader choose to buy all")
-            self.buy(stock_market, self.__wallet.euros())
+            self.__last_trade = self.buy(stock_market, self.__wallet.euros())
         if action.get_action_type() is ActionType.SELL:
             if self.__verbose <= VerboseLevel.DEBUG: print("Trader choose to sell for " + str(action.get_amount()) + "€")
-            self.sell(stock_market, action.get_amount() / stock_market.bitcoin_price())
+            self.__last_trade = self.sell(stock_market, action.get_amount() / stock_market.bitcoin_price())
         if action.get_action_type() is ActionType.SELLALL:
             if self.__verbose <= VerboseLevel.DEBUG: print("Trader choose to sell all")
-            self.sell(stock_market, self.__wallet.bitcoins())
+            self.__last_trade = self.sell(stock_market, self.__wallet.bitcoins())
         if action.get_action_type() is ActionType.HOLD:
             if self.__verbose <= VerboseLevel.DEBUG: print("Trader choose to hold")
             self.hold()
@@ -68,6 +69,7 @@ class Trader:
         if self.__verbose <= VerboseLevel.DEBUG: purchase.print_trade()
         if purchase.trade_type() is not TradeType.DENIED:
             self.__tax_declaration.add_trade(purchase)
+        return purchase
            
         
     
@@ -79,6 +81,7 @@ class Trader:
         if self.__verbose <= VerboseLevel.DEBUG: sale.print_trade()
         if sale.trade_type() is not TradeType.DENIED:
             self.__tax_declaration.add_trade(sale)
+        return sale
 
 
     def hold(self):
@@ -97,6 +100,10 @@ class Trader:
 
     def wallet(self):
         return self.__wallet
+    
+
+    def last_trade(self):
+        return self.__last_trade
     
     
     def strategy(self):

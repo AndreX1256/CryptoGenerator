@@ -29,7 +29,7 @@ class StategyDeepQLearning(Strategy):
     
     def __init__(self, verbose):
         self.create_strategy()
-        self._state_size = 5
+        self._state_size = 4
         self._action_size = 3
         self._optimizer = Adam(learning_rate=0.01)
         self._expirience_replay = deque(maxlen=2000)
@@ -43,11 +43,17 @@ class StategyDeepQLearning(Strategy):
         # Build networks
         self.q_network = self.build_compile_model()
         self.target_network = self.build_compile_model()
-        self.alighn_target_model()
+        self.align_target_model()
         
         self.q_network.summary()
     
     
+    def receive_action_values(self, input_data):
+        x_train = np.reshape(input_data.processed_data(), (1, self._state_size))
+        action_values = self.q_network.predict(x_train)[0,:]
+        return action_values
+
+
     def receive_action(self, input_data):
         #if np.random.rand() <= 0.0:
         #if np.random.rand() <= max(self._epsilon,0.1):
@@ -171,7 +177,7 @@ class StategyDeepQLearning(Strategy):
     #     actor_model.compile(loss='mse', optimizer=self._optimizer)
     #     return actor_model
     
-    def alighn_target_model(self):
+    def align_target_model(self):
         self.target_network.set_weights(self.q_network.get_weights())
         
     
